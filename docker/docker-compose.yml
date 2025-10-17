@@ -1,0 +1,17 @@
+
+
+services:
+  bitscope_db:
+    image: postgres:16-alpine
+    container_name: bitscope_db
+    environment:
+      POSTGRES_USER: bitscope_user
+      POSTGRES_PASSWORD: bitscope_password
+      POSTGRES_DB: bitscope_db
+    volumes:
+      - bitscope_db_data:/var/lib/postgresql/data
+    networks:
+      - bitscope_network
+  
+volumes:
+  bitscope_db_data:
