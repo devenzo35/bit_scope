@@ -1,0 +1,6 @@
+.env
+/docker/.env
+.DS_Store
+.vscode
+.idea
+
