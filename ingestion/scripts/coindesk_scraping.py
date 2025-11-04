@@ -8,8 +8,10 @@ import json
 soup = BeautifulSoup()
 
 URL = "https://www.coindesk.com/opinion"
-OUTDIR = Path("snapshots")
-OUTDIR.mkdir(exist_ok=True)
+ID = "coindesk_scrap_articles"
+ROOTDIR = Path(__file__).resolve().parents[2]
+DATA_DIR = ROOTDIR / "data" / "raw" / ID
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_soup(url: str):
@@ -85,7 +87,7 @@ def filter_duplicated_articles(articles: dict[str, dict[str, str]]):
     return filtered_articles
 
 
-def main():
+def extract_coindesk_articles():
     print(f"fetching {URL}...")
     soup = get_soup(URL)
     articles = parse_listing(soup)
@@ -100,9 +102,10 @@ def main():
         "data": filtered_articles,
     }
 
-    with open("articles.json", "w") as file:
+    with open(DATA_DIR / "raw_coindesk_articles.json", "w") as file:
         file.write(json.dumps(data, indent=4))
+    return f"{URL} OK"
 
 
 if __name__ == "__main__":
-    main()
+    extract_coindesk_articles()

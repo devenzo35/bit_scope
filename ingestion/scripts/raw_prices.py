@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import os
 import logging
+from pathlib import Path
 
 load_dotenv()
 
@@ -21,6 +22,11 @@ params: dict[str, str | float | int] = {
     "from": from_timestamp,
     "to": to_timestamp,
 }
+ID = "coingecko_btc_price"
+
+ROOTDIR = Path(__file__).resolve().parents[2]
+DATA_DIR = ROOTDIR / "data" / "raw" / ID
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def data_extract():
@@ -30,10 +36,10 @@ def data_extract():
         data = r.json()
         return data
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
 
 
-def main():
+def extract_raw_prices():
     try:
         logging.info("Starting BTC price ingestion process.")
 
@@ -49,7 +55,6 @@ def main():
         df["market_caps"] = [round(elem[1], 2) for elem in df["market_caps"]]
         df["total_volumes"] = [round(elem[1], 2) for elem in df["total_volumes"]]
 
-        df["prices"].plot()
 
         log_metadata(
             source="CoinGecko API",
@@ -58,11 +63,13 @@ def main():
             notes="Data fetched from CoinGecko API, stored as parquet file, containing BTC prices, market caps, and total volumes.",
         )
 
-        df.to_parquet("raw_btc_prices.parquet")
+        df.to_parquet(DATA_DIR / "raw_btc_prices.parquet")
         logging.info("BTC price ingestion process completed successfully.")
+        return f"{URL} OK" 
     except Exception as e:
         logging.error(f"An error occurred during the BTC price ingestion process: {e}")
+        return f"{URL} ERROR"
 
 
 if __name__ == "__main__":
-    main()
+    extract_raw_prices()

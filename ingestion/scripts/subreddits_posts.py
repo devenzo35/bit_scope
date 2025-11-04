@@ -2,13 +2,16 @@ import asyncio
 import asyncpraw
 from datetime import datetime, timezone
 import json
-
+from pathlib import Path
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 # from google.colab import userdata
-
+ID = "REDDIT API"
+ROOTDIR = Path(__file__).resolve().parents[2]
+DATA_DIR = ROOTDIR / "data" / "raw" / ID
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 def safe_attr(obj, attr):
     return getattr(obj, attr, None)
@@ -50,26 +53,28 @@ def extract_submission_data(submission) -> dict[str, str]:
     }
 
 
-async def main():
-    reddit = asyncpraw.Reddit(
+async def extract_subreddits():
+    
+    try:
+        reddit = asyncpraw.Reddit(
         client_id=os.getenv("REDDIS_CLIENT_ID"),
         client_secret=os.getenv("REDDIS_CLIENT_SECRET"),
         user_agent=os.getenv("REDDIS_USER_AGENT"),
-    )
+        )
 
-    subreddits = await reddit.subreddit("Bitcoin+btc+CryptoCurrency")
+        subreddits = await reddit.subreddit("Bitcoin+btc+CryptoCurrency")
 
-    async def get_submission_data():
-        posts: list[dict[str, str]] = []
+        async def get_submission_data():
+            posts: list[dict[str, str]] = []
 
-        async for submission in subreddits.new(limit=1000):
-            posts.append(extract_submission_data(submission))
+            async for submission in subreddits.new(limit=1000):
+                posts.append(extract_submission_data(submission))
 
-        return posts
+            return posts
 
-    submission_data = await get_submission_data()  # type: ignore
+        submission_data = await get_submission_data()  # type: ignore
 
-    data: dict[str, list[dict[str, str]] | dict[str, str]] = {
+        data: dict[str, list[dict[str, str]] | dict[str, str]] = {
         "metadata": {
             "source": "CoinGecko",
             "retrieved_at": datetime.now(timezone.utc).isoformat(),
@@ -77,9 +82,12 @@ async def main():
         },
         "data": submission_data,
     }
-
-    json.dumps(data, indent=4)
+        with open(DATA_DIR / 'raw_subreddits_posts.json', 'w') as file:
+            file.write(json.dumps(data, indent=4))
+        return f"{ID} OK"
+    except:
+        return f"{ID} ERROR"
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(extract_subreddits())
