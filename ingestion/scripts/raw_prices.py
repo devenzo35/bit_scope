@@ -46,16 +46,6 @@ def extract_raw_prices():
         data = data_extract()
         df = pd.DataFrame(data, dtype=object)
 
-        df["date"] = [elem[0] for elem in df["prices"]]
-        df["date"] = pd.to_datetime(df["date"], unit="ms")
-
-        df.set_index("date", inplace=True)
-
-        df["prices"] = [round(elem[1], 2) for elem in df["prices"]]
-        df["market_caps"] = [round(elem[1], 2) for elem in df["market_caps"]]
-        df["total_volumes"] = [round(elem[1], 2) for elem in df["total_volumes"]]
-
-
         log_metadata(
             source="CoinGecko API",
             file_path="raw_btc_prices.parquet",
