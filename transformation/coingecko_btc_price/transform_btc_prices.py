@@ -1,13 +1,12 @@
 import pandas as pd
 from pathlib import Path
+from config.config import INGESTION_DATA_DIR as INGESTION_DIR
+from config.config import TRANSFORM_DATA_DIR as TRANSFORM_DIR
+from config.config import COINGECKO_ID as ID
 
-ROOTDIR = Path(__file__).resolve().parents[1]
-TRANSFORM_DIR = ROOTDIR / "data" / "processed"
-TRANSFORM_DIR.mkdir(parents=True ,exist_ok=True)
-INGESTION_DIR = ROOTDIR / "data" / "raw" / 'coingecko_btc_price'
+(TRANSFORM_DIR / ID).mkdir(parents=True, exist_ok=True)
 
-
-df = pd.read_parquet(INGESTION_DIR / "raw_btc_prices.parquet")
+df = pd.read_parquet(INGESTION_DIR / ID / "raw_btc_prices.parquet")
 
 df["date"] = [elem[0] for elem in df["prices"]]
 df["date"] = pd.to_datetime(df["date"], unit="ms")
@@ -33,4 +32,4 @@ df.dtypes
 
 df.describe()
 
-df.to_parquet(TRANSFORM_DIR / "btc_prices.parquet")
+df.to_parquet(TRANSFORM_DIR / ID /  "btc_prices.parquet")

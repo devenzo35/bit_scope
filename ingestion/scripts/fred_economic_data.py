@@ -2,6 +2,7 @@ import pandas as pd
 from fredapi import Fred  # type: ignore
 from ingestion.logging.metadata_log import log_metadata
 from pathlib import Path
+from config.config import INGESTION_DATA_DIR, FRED_ID as ID
 
 from dotenv import load_dotenv
 import os
@@ -9,11 +10,9 @@ import os
 load_dotenv()
 
 API_KEY = os.getenv("FRED_API_KEY")
-ID = "FRED_API"
+DESTINATION_DIR = INGESTION_DATA_DIR / ID
 
-ROOTDIR = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOTDIR / "data" / "raw" / ID
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+(DESTINATION_DIR).mkdir(parents=True, exist_ok=True)
 
 def extract_fred_api():
     try:
@@ -41,10 +40,10 @@ def extract_fred_api():
     )
         
          
-        df.to_parquet(DATA_DIR / "interest_rates.parquet")
-        df.to_parquet(DATA_DIR / "sp500_series.parquet")
-        cpi_df.to_parquet(DATA_DIR / "cpi_raw.parquet")
-        unem_rate_df.to_parquet(DATA_DIR / "unemp_rate.parquet")
+        df.to_parquet(DESTINATION_DIR / "raw_interest_rates.parquet")
+        df.to_parquet(DESTINATION_DIR / "raw_sp500_series.parquet")
+        cpi_df.to_parquet(DESTINATION_DIR / "raw_cpi.parquet")
+        unem_rate_df.to_parquet(DESTINATION_DIR / "raw_unemp_rate.parquet")
         return f"{ID} OK"
         
     except:

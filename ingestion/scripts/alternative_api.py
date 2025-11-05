@@ -2,21 +2,19 @@ import requests
 import pandas as pd
 from ingestion.logging.metadata_log import log_metadata
 from pathlib import Path
+from config.config import INGESTION_DATA_DIR, ALTERNATIVEME_ID as ID
 
 URL = "https://api.alternative.me/fng/"
-ID = "alternativeme_fear_and_greed"
 
 params = {"limit": 365}
 
-ROOTDIR = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOTDIR / "data" / "raw" / ID
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+(INGESTION_DATA_DIR / ID).mkdir(parents=True, exist_ok=True)
+
 
 def extract_data():
     r = requests.get(URL, params=params)
     data = r.json()
     return data
-
 
 def extract_fear_and_greed():
     try:
@@ -31,8 +29,10 @@ def extract_fear_and_greed():
         rows=len(df),
         notes="Fetched Fear and Greed Index data from Alternative.me API",
     )
+    
 
-        df.to_parquet(DATA_DIR / "raw_fear_and_greed_idx.parquet")
+        df.to_parquet("raw_fng_idx.parquet")
+        df.to_parquet(INGESTION_DATA_DIR / ID / "raw_fng_idx.parquet")
         return f"{URL} OK"
     except:
         return f"{URL} ERROR"

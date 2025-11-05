@@ -5,13 +5,12 @@ import json
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from config.config import INGESTION_DATA_DIR, REDDIT_ID as ID
 
 load_dotenv()
 # from google.colab import userdata
-ID = "REDDIT API"
-ROOTDIR = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOTDIR / "data" / "raw" / ID
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+DESTINATION_DIR = INGESTION_DATA_DIR / ID
+DESTINATION_DIR.mkdir(parents=True, exist_ok=True)
 
 def safe_attr(obj, attr):
     return getattr(obj, attr, None)
@@ -82,7 +81,7 @@ async def extract_subreddits():
         },
         "data": submission_data,
     }
-        with open(DATA_DIR / 'raw_subreddits_posts.json', 'w') as file:
+        with open(DESTINATION_DIR / 'raw_subreddits_posts.json', 'w') as file:
             file.write(json.dumps(data, indent=4))
         return f"{ID} OK"
     except:
