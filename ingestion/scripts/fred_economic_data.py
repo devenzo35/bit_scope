@@ -19,10 +19,10 @@ def extract_fred_api():
         fred = Fred(api_key=API_KEY)
 
         interest_rates = fred.get_series("RIFSPFFNB")  # type: ignore
-        df = pd.DataFrame(interest_rates)
+        interest_rates_df = pd.DataFrame(interest_rates)
 
         sp500 = fred.get_series("SP500")  # type: ignore
-        df = pd.DataFrame(sp500)
+        sp500_df = pd.DataFrame(sp500)
 
         cpi = fred.get_series("CPIAUCSL")  # type: ignore
         cpi_df = pd.DataFrame(cpi)
@@ -40,8 +40,8 @@ def extract_fred_api():
     )
         
          
-        df.to_parquet(DESTINATION_DIR / "raw_interest_rates.parquet")
-        df.to_parquet(DESTINATION_DIR / "raw_sp500_series.parquet")
+        interest_rates_df.to_parquet(DESTINATION_DIR / "raw_interest_rates.parquet")
+        sp500_df.to_parquet(DESTINATION_DIR / "raw_sp500_series.parquet")
         cpi_df.to_parquet(DESTINATION_DIR / "raw_cpi.parquet")
         unem_rate_df.to_parquet(DESTINATION_DIR / "raw_unemp_rate.parquet")
         return f"{ID} OK"
