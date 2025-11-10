@@ -18,7 +18,7 @@ def extract_fred_api():
     try:
         fred = Fred(api_key=API_KEY)
 
-        interest_rates = fred.get_series("RIFSPFFNB")  # type: ignore
+        interest_rates = fred.get_series("DFEDTARU")  # type: ignore
         interest_rates_df = pd.DataFrame(interest_rates)
 
         sp500 = fred.get_series("SP500")  # type: ignore
