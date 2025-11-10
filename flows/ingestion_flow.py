@@ -7,7 +7,7 @@ from ingestion.scripts.subreddits_posts import extract_subreddits
 from ingestion.scripts.fred_economic_data import extract_fred_api
 from ingestion.scripts.coindesk_scraping import extract_coindesk_articles
 
-    
+     
 @task
 def run_ingestion():
     logger = get_run_logger()
@@ -18,27 +18,26 @@ def run_ingestion():
     extract_fred_api_result = extract_fred_api()
     extract_coindesk_articles_result = extract_coindesk_articles()
     
-    
-    
     logger.info(f"{price_result} - {fear_and_greed_result} - {extract_subreddits_result} - {extract_fred_api_result}- {extract_coindesk_articles_result}") 
     
 
         
     
-@flow(name="btc_price_ingestion_flow")
-def extract_price_from_source():
+@flow(name="ingestion_flow")
+def ingestion_flow():
     run_ingestion()        
         
     
 if __name__ == "__main__":    
     
-     extract_price_from_source.from_source(
+    ingestion_flow.from_source(
         source=".",  # Directorio actual
-        entrypoint="flows/ingestion_flow.py:extract_price_from_source"
-    ).deploy(
-        name="daily_btc_price_extraction",
+        entrypoint="flows/ingestion_flow.py:ingestion_flow"
+        ).deploy(
+        name="daily_btc_ingestion_flow",
         work_pool_name='bit-scope_local_pool',
         schedule=IntervalSchedule(interval=timedelta(days=1)),
     )
+    
     
     
