@@ -82,7 +82,7 @@ async def extract_subreddits():
         "data": submission_data,
     }
         with open(DESTINATION_DIR / 'raw_subreddits_posts.json', 'w') as file:
-            file.write(json.dumps(data, indent=4))
+            await file.write(json.dumps(data, indent=4))
         return f"{ID} OK"
     except:
         return f"{ID} ERROR"

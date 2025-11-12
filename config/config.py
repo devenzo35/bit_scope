@@ -11,3 +11,4 @@ ALTERNATIVEME_ID = "alternative_me"
 
 TRANSFORM_DATA_DIR = ROOTDIR / "data" / "processed" 
 INGESTION_DATA_DIR = ROOTDIR / "data" / "raw" 
+STORAGE_DIR = ROOTDIR / "storage" 

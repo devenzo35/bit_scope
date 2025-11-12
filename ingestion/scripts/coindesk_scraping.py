@@ -3,12 +3,11 @@ import requests
 from bs4 import BeautifulSoup
 from pathlib import Path
 import json
-
+from config.config import COINDESK_ID as ID
 
 soup = BeautifulSoup()
 
 URL = "https://www.coindesk.com/opinion"
-ID = "coindesk_scrap_articles"
 ROOTDIR = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOTDIR / "data" / "raw" / ID
 DATA_DIR.mkdir(parents=True, exist_ok=True)
