@@ -1,3 +1,7 @@
+"""
+This script fetches recent posts from multiple subreddits using the Reddit API (asyncpraw),
+extracts relevant fields, and saves the data as a single JSON file.
+"""
 import asyncio
 import asyncpraw
 from datetime import datetime, timezone
@@ -7,86 +11,92 @@ import os
 from dotenv import load_dotenv
 from config.config import INGESTION_DATA_DIR, REDDIT_ID as ID
 
+# --- Configuration ---
 load_dotenv()
-# from google.colab import userdata
-DESTINATION_DIR = INGESTION_DATA_DIR / ID
-DESTINATION_DIR.mkdir(parents=True, exist_ok=True)
+DATA_DIR = INGESTION_DATA_DIR / ID
+FILE_PATH = DATA_DIR / "raw_subreddits_posts.json"
+SUBREDDITS_TO_FETCH = "Bitcoin+btc+CryptoCurrency"
+POST_LIMIT = 1000
 
-def safe_attr(obj, attr):
-    return getattr(obj, attr, None)
+# Ensure the destination directory exists
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def extract_submission_data(submission) -> dict[str, str]:
+def extract_submission_data(submission) -> dict:
     """
-    Extract all relevant fields from a PRAW submission object
-    and return as a Python dictionary.
+    Extracts all relevant fields from a PRAW submission object
+    and returns them as a Python dictionary.
     """
-
     return {
         "id": submission.id,
-        "name": submission.name,
         "title": submission.title,
         "selftext": submission.selftext,
         "author": str(submission.author) if submission.author else None,
         "author_flair_text": submission.author_flair_text,
         "clicked": submission.clicked,
-        "comments_count": submission.num_comments,
+        "num_comments": submission.num_comments,
         "distinguished": submission.distinguished,
         "edited": submission.edited,
         "is_original_content": submission.is_original_content,
         "is_self": submission.is_self,
-        "link_flair_template_id": safe_attr(submission, "link_flair_template_id"),
         "link_flair_text": submission.link_flair_text,
         "locked": submission.locked,
         "over_18": submission.over_18,
         "permalink": submission.permalink,
-        # "poll_data": safe_attr(submission, 'poll_data'),
+        "full_link": f"https://www.reddit.com{submission.permalink}",
         "saved": submission.saved,
         "score": submission.score,
         "spoiler": submission.spoiler,
         "stickied": submission.stickied,
-        "subreddit": str(submission.subreddit) if submission.subreddit else None,
+        "subreddit": str(submission.subreddit),
+        "subreddit_subscribers": getattr(submission.subreddit, 'subscribers', None),
         "upvote_ratio": submission.upvote_ratio,
         "url": submission.url,
         "created_utc": submission.created_utc,
+        "num_crossposts": getattr(submission, 'num_crossposts', 0),
+        "total_awards_received": getattr(submission, 'total_awards_received', 0),
     }
 
 
-async def extract_subreddits():
-    
+async def main():
+    """
+    Main asynchronous function to orchestrate the fetching and saving of Reddit posts.
+    """
+    print("Starting Reddit post ingestion...")
+    client_id = os.getenv("REDDIS_CLIENT_ID")
+    client_secret = os.getenv("REDDIS_CLIENT_SECRET")
+    user_agent = os.getenv("REDDIS_USER_AGENT")
+
+    if not all([client_id, client_secret, user_agent]):
+        print("ERROR: Reddit API credentials not found in environment variables.")
+        return f"{ID} ERROR"
+
     try:
-        reddit = asyncpraw.Reddit(
-        client_id=os.getenv("REDDIS_CLIENT_ID"),
-        client_secret=os.getenv("REDDIS_CLIENT_SECRET"),
-        user_agent=os.getenv("REDDIS_USER_AGENT"),
-        )
-
-        subreddits = await reddit.subreddit("Bitcoin+btc+CryptoCurrency")
-
-        async def get_submission_data():
-            posts: list[dict[str, str]] = []
-
-            async for submission in subreddits.new(limit=1000):
+        async with asyncpraw.Reddit(
+            client_id=client_id,
+            client_secret=client_secret,
+            user_agent=user_agent,
+        ) as reddit:
+            subreddits = await reddit.subreddit(SUBREDDITS_TO_FETCH)
+            posts = []
+            print(f"Fetching up to {POST_LIMIT} new posts from '{SUBREDDITS_TO_FETCH}'...")
+            async for submission in subreddits.new(limit=POST_LIMIT):
                 posts.append(extract_submission_data(submission))
 
-            return posts
+            print(f"Successfully fetched {len(posts)} posts.")
 
-        submission_data = await get_submission_data()  # type: ignore
+            # Save data to JSON file
+            with open(FILE_PATH, 'w', encoding='utf-8') as f:
+                json.dump(posts, f, indent=4)
+            
+            print(f"Data saved to {FILE_PATH}")
+            return f"{ID} OK"
 
-        data: dict[str, list[dict[str, str]] | dict[str, str]] = {
-        "metadata": {
-            "source": "CoinGecko",
-            "retrieved_at": datetime.now(timezone.utc).isoformat(),
-            "version": "1.0",
-        },
-        "data": submission_data,
-    }
-        with open(DESTINATION_DIR / 'raw_subreddits_posts.json', 'w') as file:
-            await file.write(json.dumps(data, indent=4))
-        return f"{ID} OK"
-    except:
+    except Exception as e:
+        print(f"An error occurred during Reddit ingestion: {e}")
         return f"{ID} ERROR"
 
 
 if __name__ == "__main__":
-    asyncio.run(extract_subreddits())
+    # In Python 3.7+, asyncio.run is the standard way to run an async function.
+    asyncio.run(main())

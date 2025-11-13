@@ -1,67 +1,60 @@
 -- schema.sql
+-- Este esquema está diseñado para coincidir con la salida de los scripts de transformación originales.
 
--- Tabla para almacenar los precios de Bitcoin
+-- De transformation/scripts/coingecko_btc_price/transform_btc_prices.py
 CREATE TABLE IF NOT EXISTS btc_prices (
     date TIMESTAMP PRIMARY KEY,
-    price REAL
+    price REAL,
+    market_cap REAL,
+    total_volume REAL
 );
 
--- Tabla para almacenar el índice de Miedo y Codicia (Fear and Greed)
+-- De transformation/scripts/alternative_me/transform_fng.py
 CREATE TABLE IF NOT EXISTS fear_and_greed (
     date TIMESTAMP PRIMARY KEY,
     value INTEGER,
-    value_classification TEXT
+    value_classification TEXT,
+    hours_until_update REAL
 );
 
--- Tabla para almacenar los artículos de Coindesk
+-- De transformation/scripts/coindesk_scrap_articles/transform_coindesk_articles.py
 CREATE TABLE IF NOT EXISTS coindesk_articles (
-    id VARCHAR PRIMARY KEY,
-    url VARCHAR,
-    title VARCHAR,
-    description VARCHAR,
-    author VARCHAR,
-    author_url VARCHAR,
-    publish_date TIMESTAMP,
-    content VARCHAR
+    title VARCHAR PRIMARY KEY,
+    extra_info VARCHAR
 );
 
--- Tabla para almacenar los datos de CPI (Índice de Precios al Consumidor)
+-- De transformation/scripts/fred_economic_data/transform_fred_economic_data.py
 CREATE TABLE IF NOT EXISTS cpi_data (
     date DATE PRIMARY KEY,
-    value REAL
+    monthly_inflation REAL
 );
 
--- Tabla para almacenar las tasas de interés
 CREATE TABLE IF NOT EXISTS interest_rates_data (
     date DATE PRIMARY KEY,
-    value REAL
+    interest_rate REAL
 );
 
--- Tabla para almacenar el precio del SPY
 CREATE TABLE IF NOT EXISTS spy_price_data (
     date DATE PRIMARY KEY,
-    value REAL
+    price REAL
 );
 
--- Tabla para almacenar la tasa de desempleo
 CREATE TABLE IF NOT EXISTS unemployment_rate_data (
     date DATE PRIMARY KEY,
-    value REAL
+    unemp_rate REAL
 );
 
--- Tabla para almacenar los posts de Reddit
+-- De transformation/scripts/reddit_api/tansform_subreddits_posts.py
 CREATE TABLE IF NOT EXISTS reddit_posts (
     id VARCHAR PRIMARY KEY,
     title VARCHAR,
-    author VARCHAR,
-    created_utc TIMESTAMP,
-    score INTEGER,
-    upvote_ratio REAL,
-    full_link VARCHAR,
-    num_comments INTEGER,
-    num_crossposts INTEGER,
-    total_awards_received INTEGER,
     selftext VARCHAR,
+    comments_count INTEGER,
+    link_flair_text VARCHAR,
+    permalink VARCHAR,
+    score INTEGER,
     subreddit VARCHAR,
-    subreddit_subscribers INTEGER
+    upvote_ratio REAL,
+    url VARCHAR,
+    created_utc BIGINT
 );

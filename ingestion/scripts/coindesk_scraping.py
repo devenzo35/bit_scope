@@ -1,32 +1,36 @@
+"""
+This script scrapes opinion articles from Coindesk, parses them,
+filters out duplicates, and saves the data as a JSON file.
+"""
 from datetime import datetime, timezone
 import requests
 from bs4 import BeautifulSoup
 from pathlib import Path
 import json
-from config.config import COINDESK_ID as ID
+from config.config import INGESTION_DATA_DIR, COINDESK_ID as ID
 
-soup = BeautifulSoup()
-
+# --- Configuration ---
 URL = "https://www.coindesk.com/opinion"
-ROOTDIR = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOTDIR / "data" / "raw" / ID
+DATA_DIR = INGESTION_DATA_DIR / ID
+FILE_PATH = DATA_DIR / "raw_coindesk_articles.json"
+
+# Ensure the destination directory exists
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def get_soup(url: str):
+def get_soup(url: str) -> BeautifulSoup:
     """
+    Fetches the HTML content from a URL and returns it as a BeautifulSoup object.
 
     Args:
-        url (str): _site url from where the content is to be scraped_
+        url: The URL to scrape.
 
     Returns:
-        BeautifulSoup: _Parsed HTML content_
+        A BeautifulSoup object representing the parsed HTML.
     """
-
     headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; EnScraper/1.0; +https://example.com/bot)"
+        "User-Agent": "Mozilla/5.0 (compatible; GeminiScraper/1.0; +http://google.com/bot)"
     }
-
     r = requests.get(url=url, headers=headers, timeout=15)
     r.raise_for_status()
     return BeautifulSoup(r.text, "lxml")
@@ -34,16 +38,15 @@ def get_soup(url: str):
 
 def parse_listing(soup: BeautifulSoup) -> dict[str, dict[str, str]]:
     """
+    Parses the article listing page to extract article data.
 
     Args:
-        soup (BeautifulSoup): _Soup object of the listing page_
+        soup: The BeautifulSoup object of the listing page.
 
     Returns:
-        dict[str, dict[str, str]]: _Parsed article data_
+        A dictionary of article data, with titles as keys.
     """
-
     rows: dict[str, dict[str, str]] = {}
-
     article_cards = soup.select("section div")
 
     for a in article_cards:
@@ -64,46 +67,54 @@ def parse_listing(soup: BeautifulSoup) -> dict[str, dict[str, str]]:
     return rows
 
 
-def filter_duplicated_articles(articles: dict[str, dict[str, str]]):
-    """filter articles because of duplication, and save to json file
+def filter_duplicated_articles(articles: dict[str, dict[str, str]]) -> list[dict[str, str]]:
+    """
+    Filters a dictionary of articles to remove duplicates based on keys.
 
     Args:
-        articles (dict[str, dict[str, str]]): _duplicated article data_
+        articles: A dictionary of articles, potentially with duplicates.
+
     Returns:
-        None
-
+        A list of unique articles.
     """
-
     filter_rows: dict[str, dict[str, str]] = {}
-
     for k, v in articles.items():
         if filter_rows.get(k):
             pass
         else:
             filter_rows[k] = v
-
-    filtered_articles = [article for article in filter_rows.values()]
-    return filtered_articles
+    return [article for article in filter_rows.values()]
 
 
 def extract_coindesk_articles():
-    print(f"fetching {URL}...")
-    soup = get_soup(URL)
-    articles = parse_listing(soup)
-    filtered_articles = filter_duplicated_articles(articles)
+    """
+    Main function to orchestrate the scraping, parsing, and saving of Coindesk articles.
+    """
+    print(f"Fetching {URL}...")
+    try:
+        soup = get_soup(URL)
+        articles = parse_listing(soup)
+        filtered_articles = filter_duplicated_articles(articles)
 
-    data: dict[str, list[dict[str, str]] | dict[str, str]] = {
-        "metadata": {
-            "source": "CoinGecko",
-            "retrieved_at": datetime.now(timezone.utc).isoformat(),
-            "version": "1.0",
-        },
-        "data": filtered_articles,
-    }
+        data = {
+            "metadata": {
+                "source": "Coindesk",
+                "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            },
+            "data": filtered_articles,
+        }
 
-    with open(DATA_DIR / "raw_coindesk_articles.json", "w") as file:
-        file.write(json.dumps(data, indent=4))
-    return f"{URL} OK"
+        with open(FILE_PATH, "w", encoding="utf-8") as file:
+            file.write(json.dumps(data, indent=4))
+        
+        print(f"Successfully saved {len(filtered_articles)} articles from {URL}")
+        return f"{URL} OK"
+    except requests.exceptions.RequestException as e:
+        print(f"ERROR fetching data from {URL}: {e}")
+        return f"{URL} ERROR"
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return f"{URL} ERROR"
 
 
 if __name__ == "__main__":
