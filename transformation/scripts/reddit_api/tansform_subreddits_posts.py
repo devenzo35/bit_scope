@@ -5,47 +5,44 @@ from config.config import INGESTION_DATA_DIR,TRANSFORM_DATA_DIR, REDDIT_ID as ID
 DEST_DIR = TRANSFORM_DATA_DIR / ID
 (DEST_DIR).mkdir(parents=True, exist_ok=True)
 
+from storage.repositories import RedditPostsRepository
+
 def transform_subreddits_posts():
+    """
+    Transforms the raw Reddit posts data and loads it into the database.
+    """
+    try:
+        # Transformación
+        with open(INGESTION_DATA_DIR / ID / 'raw_subreddits_posts.json') as f:
+            data = json.load(f)
 
-  with open(INGESTION_DATA_DIR / ID / 'raw_subreddits_posts.json') as f:
-    data = json.load(f)
+        df = pd.json_normalize(data)
 
-  df = pd.json_normalize(data['data'])
+        # Seleccionar y renombrar columnas para que coincidan con el schema.sql
+        df_transformed = df[[
+            'id', 'title', 'author', 'created_utc', 'score', 'upvote_ratio', 
+            'full_link', 'num_comments', 'num_crossposts', 'total_awards_received', 
+            'selftext', 'subreddit', 'subreddit_subscribers'
+        ]].copy()
 
-  df.info()
+        df_transformed['created_utc'] = pd.to_datetime(df_transformed['created_utc'], unit='s')
+        
+        # Llenar valores nulos en 'selftext' para evitar problemas con la base de datos
+        df_transformed['selftext'].fillna('', inplace=True)
 
-  missing_values = df.isnull().sum()
-  missing_percentage = (df.isnull().sum() / len(df)) * 100
+        # Guardar en Parquet
+        df_transformed.to_parquet(DEST_DIR / 'transform_subreddits_posts.parquet', index=False)
 
-  missing_info = pd.DataFrame({
-      'Missing Count': missing_values,
-      'Missing Percentage': missing_percentage
-  })
+        # Carga a la base de datos
+        print("Loading transformed Reddit posts into the database...")
+        repo = RedditPostsRepository()
+        repo.create_tables_from_schema()
+        repo.add_posts(df_transformed)
 
-  missing_info = missing_info.sort_values(by='Missing Percentage', ascending=False)
-  print("Missing Values Information:")
-  print(missing_info[missing_info['Missing Count'] > 0])
+        return f"Transformed and loaded {len(df_transformed)} records for {ID} successfully."
 
-  df = df[['id',
-          #'name',
-          'title', 'selftext',
-          #'author', 'author_flair_text','clicked',
-          'comments_count',
-          #'distinguished', 'edited',
-        #'is_original_content', 'is_self', 'link_flair_template_id',
-        'link_flair_text',
-          #'locked',
-          #'over_18',
-          'permalink',
-          #'saved',
-          'score',
-        #'spoiler', 'stickied',
-          'subreddit', 'upvote_ratio', 'url',
-        'created_utc']]
-
-  df.to_parquet(DEST_DIR / 'transform_subreddits_posts.parquet')
-  
-  return f"{ID} OK."
+    except Exception as e:
+        return f"Error during transformation/loading for {ID}: {e}"
   
   
 if __name__ == "__main__":
