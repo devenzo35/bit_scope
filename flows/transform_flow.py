@@ -11,15 +11,17 @@ from transformation.scripts.coingecko_btc_price.transform_btc_prices import tran
 def run_transformation():
     logger = get_run_logger()
     logger.info("Starting Data Transformation")
-    fng_result = transform_fng()
-    fred_result = transform_fred_economic_data()
-    subreddits_result = transform_subreddits_posts()
-    coindesk_result = transform_coindesk_articles()
     coingecko_result =  transform_btc_prices()
-    
-    logger.info(f"{fng_result} - {fred_result} - {subreddits_result} - {coindesk_result} - {coingecko_result}")
-    
-    
+    logger.info(f"BTC Price Transformation result: {coingecko_result}")
+    fng_result = transform_fng()
+    logger.info(f"Fear and Greed Transformation result: {fng_result}")
+    subreddits_result = transform_subreddits_posts()
+    logger.info(f"Reddit Subreddits Transformation result: {subreddits_result}")
+    fred_result = transform_fred_economic_data()
+    logger.info(f"FRED Economic Data Transformation result: {fred_result}")
+    coindesk_result = transform_coindesk_articles()
+    logger.info(f"Coindesk Articles Transformation result: {coindesk_result}")
+    logger.info("Data Transformation Completed. ✅")    
 
 @Flow
 def transform_flow():

@@ -13,13 +13,21 @@ import asyncio
 async def run_ingestion():
     logger = get_run_logger()
     logger.info("Starting BTC Raw Price extraction")
-    price_result = extract_raw_prices()
+    coingecko_data_result = extract_raw_prices()
+    logger.info(f"BTC Raw Price extraction result: {coingecko_data_result}")
     fear_and_greed_result = extract_fear_and_greed()
+    logger.info(f"Fear and Greed extraction result: {fear_and_greed_result}")
     extract_subreddits_result =  await extract_subreddits()
+    logger.info(f"Reddit Subreddits extraction result: {extract_subreddits_result}")
     extract_fred_api_result = extract_fred_api()
+    logger.info(f"FRED API extraction result: {extract_fred_api_result}")
     extract_coindesk_articles_result = extract_coindesk_articles()
+    logger.info(f"Coindesk Articles extraction result: {extract_coindesk_articles_result}")
     
-    logger.info(f"{price_result} - {fear_and_greed_result} - {extract_subreddits_result} - {extract_fred_api_result}- {extract_coindesk_articles_result}") 
+    logger.info("Ingestion flow completed. ✅")
+
+    
+        
     
 
         

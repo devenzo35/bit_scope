@@ -58,7 +58,7 @@ def extract_submission_data(submission) -> dict:
     }
 
 
-async def main():
+async def extract_subreddits():
     """
     Main asynchronous function to orchestrate the fetching and saving of Reddit posts.
     """
@@ -99,4 +99,4 @@ async def main():
 
 if __name__ == "__main__":
     # In Python 3.7+, asyncio.run is the standard way to run an async function.
-    asyncio.run(main())
+    asyncio.run(extract_subreddits())

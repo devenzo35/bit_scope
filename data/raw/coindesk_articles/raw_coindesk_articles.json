@@ -1,8 +1,7 @@
 {
     "metadata": {
-        "source": "CoinGecko",
-        "retrieved_at": "2025-11-12T18:32:46.206764+00:00",
-        "version": "1.0"
+        "source": "Coindesk",
+        "retrieved_at": "2025-11-13T21:39:49.838246+00:00"
     },
     "data": [
         {
@@ -41,24 +40,24 @@
             "description": "Nov 2, 2025"
         },
         {
-            "title": "Brazil Proposes Selling Seized Bitcoin to Undercut Organized Crime Networks",
-            "metadata": "ByFrancisco Rodrigues,AI Boost1 hour ago",
-            "description": "ByFrancisco Rodrigues,AI Boost"
+            "title": "dYdX Governance Approves Buyback Increase to 75% of Protocol Revenue",
+            "metadata": "ByMargaux Nijkerk,AI Boost5 hours ago",
+            "description": "ByMargaux Nijkerk,AI Boost"
         },
         {
-            "title": "New Strike Force Set to Target Overseas 'Pig Butchering' as U.S. Hits Burma Operation",
-            "metadata": "ByJesse Hamilton1 hour ago",
-            "description": "ByJesse Hamilton"
+            "title": "Leading Base DEX Aerodrome Merges Into Aero in Major Overhaul",
+            "metadata": "ByMargaux Nijkerk,AI Boost6 hours ago",
+            "description": "ByMargaux Nijkerk,AI Boost"
         },
         {
-            "title": "The Protocol: Sweeping Uniswap Proposal \u2018UNIfication\u2019",
-            "metadata": "ByMargaux Nijkerk1 hour ago",
-            "description": "ByMargaux Nijkerk"
+            "title": "Singapore's Central Bank to Trial Tokenized Bills, Introduce Stablecoin Laws",
+            "metadata": "ByJamie Crawley6 hours ago",
+            "description": "ByJamie Crawley"
         },
         {
-            "title": "Franklin Templeton Expands Benji Technology Platform to Canton Network",
-            "metadata": "ByWill Canny,AI Boost4 hours ago",
-            "description": "ByWill Canny,AI Boost"
+            "title": "Trump Signs Bill to Reopen U.S. Government as Congress Suddenly Ramps Up Crypto Work",
+            "metadata": "ByNikhilesh De20 hours ago",
+            "description": "ByNikhilesh De"
         },
         {
             "title": "Bitcoin: The Dawn of a New Monetary Era",
