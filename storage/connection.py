@@ -9,4 +9,5 @@ def get_db_connection():
     """
     Returns a connection to the DuckDB database.
     """
+    
     return duckdb.connect(DB_FILE)
