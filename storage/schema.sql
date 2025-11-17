@@ -56,5 +56,5 @@ CREATE TABLE IF NOT EXISTS reddit_posts (
     subreddit VARCHAR,
     upvote_ratio REAL,
     url VARCHAR,
-    created_utc BIGINT
+    created_utc TIMESTAMP
 );

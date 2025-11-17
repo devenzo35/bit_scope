@@ -3,7 +3,7 @@ from prefect.client.schemas.schedules import IntervalSchedule
 from datetime import timedelta
 from transformation.scripts.alternative_me.transform_fng import transform_fng
 from transformation.scripts.fred_economic_data.transform_fred_economic_data import transform_fred_economic_data
-from transformation.scripts.reddit_api.tansform_subreddits_posts import transform_subreddits_posts
+from transformation.scripts.reddit_api.transform_subreddits_posts import transform_subreddits_posts
 from transformation.scripts.coindesk_scrap_articles.transform_coindesk_articles import transform_coindesk_articles
 from transformation.scripts.coingecko_btc_price.transform_btc_prices import transform_btc_prices 
 

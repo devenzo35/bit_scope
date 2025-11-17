@@ -84,10 +84,18 @@ async def extract_subreddits():
                 posts.append(extract_submission_data(submission))
 
             print(f"Successfully fetched {len(posts)} posts.")
+            
+            data = {
+            "metadata": {
+                "source": "Reddit API",
+                "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            },
+            "data": posts,
+            }
 
             # Save data to JSON file
             with open(FILE_PATH, 'w', encoding='utf-8') as f:
-                json.dump(posts, f, indent=4)
+                json.dump(data, f, indent=4)
             
             print(f"Data saved to {FILE_PATH}")
             return f"{ID} OK"
