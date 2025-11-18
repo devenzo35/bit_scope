@@ -2,6 +2,11 @@ from storage.connection import get_db_connection
 import streamlit as st
 from plotly import graph_objects as go
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+plt.style.use("seaborn-v0_8-dark")
+sns.set_palette("husl")
 
 
 def market_sentiment_page():
@@ -10,97 +15,75 @@ def market_sentiment_page():
     btc_price = con.execute("SELECT * FROM btc_prices").df()
 
     st.metric(label="Score", value=df["value"].iloc[0])
-    st.metric(label="value_classification", value=df["classification"].iloc[0])
+    st.metric(label="Classification", value=df["value_classification"].iloc[0])
+    st.metric(label="Classification", value=str(df["date"].iloc[0]).split(" ")[0])
 
     df.set_index("date", inplace=True)
 
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
 
-    df_daily = df["value"].resample("D").mean().reset_index()
-    df_daily_btc = btc_price.set_index("date").resample("D").mean(40).reset_index()
+    df_daily = df["value"].resample("15D").mean().reset_index()
+    df_daily_btc = btc_price.set_index("date").resample("15D").mean().reset_index()
 
-    df_daily["smooth_value"] = df_daily["value"].rolling(window=7, min_periods=1).mean()
-
-    fig = go.Figure()
-
-    fig.add_hrect(
-        y0=0,
-        y1=25,
-        fillcolor="red",
-        opacity=0.1,
-        layer="below",
-        line_width=0,
-        yref="y2",  # Referencia al eje Y derecho
-    )
-    fig.add_hrect(
-        y0=25,
-        y1=45,
-        fillcolor="orange",
-        opacity=0.1,
-        layer="below",
-        line_width=0,
-        yref="y2",
-    )
-    fig.add_hrect(
-        y0=45,
-        y1=55,
-        fillcolor="yellow",
-        opacity=0.1,
-        layer="below",
-        line_width=0,
-        yref="y2",
-    )
-    fig.add_hrect(
-        y0=55,
-        y1=75,
-        fillcolor="lightgreen",
-        opacity=0.1,
-        layer="below",
-        line_width=0,
-        yref="y2",
-    )
-    fig.add_hrect(
-        y0=75,
-        y1=100,
-        fillcolor="green",
-        opacity=0.1,
-        layer="below",
-        line_width=0,
-        yref="y2",
+    df_daily["smooth_value"] = (
+        df_daily["value"].rolling(window=15, min_periods=1).mean()
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=df_daily_btc["date"],
-            y=df_daily_btc["price"],
-            mode="lines",
-            name="BTC Price",
-            yaxis="y1",
-            line=dict(color="white", width=1),
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=df_daily["date"],
-            y=df_daily["smooth_value"],
-            mode="lines",
-            name="Fear and Greed Index",
-            yaxis="y2",
-            line=dict(color="red", width=0.8, smoothing=1.3, shape="spline"),
-        )
+    fig, ax1 = plt.subplots(figsize=(12, 6))
+
+    line1 = ax1.plot(
+        df_daily_btc["date"],
+        df_daily_btc["price"],
+        color="#00D9FF",
+        linewidth=2,
+        label="BTC Price",
     )
 
-    fig.update_layout(
-        title="Bitcoin Fear and Greed Index Over Time",
-        xaxis=dict(title="Date", domain=[1, 1]),
-        yaxis=dict(title="BTC", side="left"),
-        yaxis2=dict(title="Fear & Greed index", overlaying="y", side="right"),
-        xaxis_title="Date",
-        yaxis_title="Fear and Greed Index",
-        hovermode="x unified",
-        template="plotly_dark",
-        height=600,
-        width=1900,
+    ax1.set_xlabel("Date")
+    ax1.set_ylabel("Sentiment Score", fontsize=15)
+    ax1.tick_params(axis="y", labelsize=15)
+    ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
+    ax1.set_title("Bitcoin Market Sentiment vs Price")
+    # how do I increment the font size of the y axis values?
+    # ax1.tick_params(axis="y", labelsize=12)
+
+    ax2 = ax1.twinx()
+
+    line2 = ax2.plot(
+        df_daily["date"],
+        df_daily["value"],
+        marker="o",
+        color="#FF6B35",
+        linewidth=2,
+        label="Sentiment Score",
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    ax2.set_ylabel("BTC Price", fontsize=15)
+    ax2.tick_params(axis="y", labelsize=15)
+    ax2.set_ylim(0, 100)
+
+    lines = line1 + line2
+    labels = [line.get_label() for line in lines]
+
+    ax1.legend(lines, labels, loc="upper left", fontsize=10)
+
+    plt.title("Bitcoin Market Sentiment vs Price")
+    plt.tight_layout()
+    plt.xticks(rotation=45)
+
+    st.pyplot(plt)
+    plt.close()
+
+    plt.figure(figsize=(12, 6))
+    sns.lineplot(
+        data=df_daily,
+        x="date",
+        y="value",
+        marker="o",
+        label="Sentiment Score",
+        color="blue",
+    )
+
+    st.pyplot(plt)
+
+    st.image("https://alternative.me/crypto/fear-and-greed-index.png")
