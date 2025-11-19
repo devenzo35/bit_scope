@@ -12,111 +12,86 @@ sns.set_palette("husl")
 
 def market_sentiment_page():
     con = get_db_connection()
-    df = con.execute("SELECT * FROM fear_and_greed").df()
-    btc_price = con.execute("SELECT * FROM btc_prices").df()
+    fng_df = con.execute("SELECT * FROM fear_and_greed").df()
+    btc_price_df = con.execute("SELECT * FROM btc_prices").df()
 
-    st.metric(label="Score", value=df["value"].iloc[0])
-    st.metric(label="Classification", value=df["value_classification"].iloc[0])
-    st.metric(label="Classification", value=str(df["date"].iloc[0]).split(" ")[0])
+    st.metric(label="Score", value=fng_df["value"].iloc[-1])
+    st.metric(label="Classification", value=fng_df["value_classification"].iloc[-1])
+    st.metric(label="Classification", value=str(fng_df["date"].iloc[-1]).split(" ")[0])
 
-    df.set_index("date", inplace=True)
+    fng_df.set_index("date", inplace=True)
 
-    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    fng_df["value"] = pd.to_numeric(fng_df["value"], errors="coerce")
 
-    df_daily = df["value"].resample("15D").mean().reset_index()
-    df_daily_btc = btc_price.set_index("date").resample("15D").mean().reset_index()
+    fng_ma = fng_df["value"].resample("7D").mean().reset_index()
+    btc_price_ma = btc_price_df.set_index("date").resample("7D").mean().reset_index()
 
-    df_daily["smooth_value"] = (
-        df_daily["value"].rolling(window=15, min_periods=1).mean()
+    fng_ma["smooth_value"] = fng_ma["value"].rolling(window=15, min_periods=1).mean()
+
+    historic_avg = fng_ma["value"].mean()
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Bar(
+            x=fng_ma["date"],
+            y=fng_ma["value"],
+            name="BTC Sentiment Score 7-Day MA",
+            yaxis="y1",
+            marker=dict(color=fng_ma["value"], colorscale="RdYlGn"),
+            opacity=0.6,
+        )
     )
 
-    historic_avg = df_daily["value"].mean()
-
-    fig = make_subplots(
-        rows=1,
-        cols=1,
-        shared_xaxes=True,
-        vertical_spacing=0.1,
-        subplot_titles=("Sentiment vs Price"),
+    fig.add_trace(
+        go.Scatter(
+            x=btc_price_ma["date"],
+            y=btc_price_ma["price"],
+            mode="lines",
+            name="BTC Price (USD) 7-Day MA",
+            line=dict(color="white", width=3),
+            yaxis="y2",
+        )
     )
 
-    fig, ax1 = plt.subplots(figsize=(12, 6))
-
-    line1 = ax1.plot(
-        df_daily_btc["date"],
-        df_daily_btc["price"],
-        color="#00D9FF",
-        linewidth=2,
-        label="BTC Price",
+    fig.update_layout(
+        height=600,
+        xaxis=dict(title="Date", domain=[0.1, 0.9]),
+        yaxis=dict(
+            title="Sentiment Score",
+            side="left",
+        ),
+        yaxis2=dict(
+            title="BTC Price (USD)",
+            overlaying="y",
+            side="right",
+        ),
+        template="plotly_dark",
+        hovermode="x unified",
+        showlegend=True,
+        title_text="Bitcoin Market Sentiment vs Price Over Time",
     )
 
-    ax1.set_xlabel("Date")
-    ax1.set_ylabel("Sentiment Score", fontsize=15)
-    ax1.tick_params(axis="y", labelsize=15)
-    ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${x:,.0f}"))
-    ax1.set_title("Bitcoin Market Sentiment vs Price")
-    # how do I increment the font size of the y axis values?
-    # ax1.tick_params(axis="y", labelsize=12)
-
-    ax2 = ax1.twinx()
-
-    line2 = ax2.plot(
-        df_daily["date"],
-        df_daily["value"],
-        marker="o",
-        color="#FF6B35",
-        linewidth=2,
-        label="Sentiment Score",
+    fig.update_legends(
+        title_font=dict(size=14, color="white", family="Arial"),
+        x=0.25,
+        y=0.99,
     )
-
-    ax2.set_ylabel("BTC Price", fontsize=15)
-    ax2.tick_params(axis="y", labelsize=15)
-    ax2.set_ylim(0, 100)
-
-    lines = line1 + line2
-    labels = [line.get_label() for line in lines]
-
-    ax1.legend(lines, labels, loc="upper left", fontsize=10)
-
-    plt.title("Bitcoin Market Sentiment vs Price")
-    plt.tight_layout()
-    plt.xticks(rotation=45)
-
-    st.pyplot(plt)
-    plt.close()
-
-    fig2, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(
-        df_daily["date"],
-        df_daily["value"],
-        linewidth=2,
-        marker="o",
-        label="Sentiment Score",
-        color="blue",
-    )
-    ax.axhline(
-        y=historic_avg,  # Altura de la línea (el promedio)
-        color="red",  # Color dorado
-        linestyle="--",  # Línea punteada
-        linewidth=2,  # Grosor
-        label=f"Promedio: ${historic_avg:,.0f}",  # Etiqueta con el valor
-        alpha=0.8,  # Transparencia
-        zorder=2,  # Que quede debajo del precio
-    )
+    st.plotly_chart(fig)
 
     fig3 = go.Figure()
     fig3.add_trace(
         go.Scatter(
-            x=df_daily["date"],
-            y=df_daily["value"],
+            x=fng_ma["date"],
+            y=fng_ma["value"],
             mode="lines+markers",
-            name="Sentiment Score (Smoothed)",
+            name="Sentiment Score 7-Day ma",
             line=dict(
                 color="white",  # ← Valores para el color
                 width=1,
             ),
             marker=dict(
-                color=df_daily["value"],  # También colorear los puntos
+                color=fng_ma["value"],  # También colorear los puntos
                 colorscale="RdYlGn",
                 size=10,
                 showscale=True,  # No mostrar barra extra
@@ -127,8 +102,8 @@ def market_sentiment_page():
 
     fig3.add_trace(
         go.Scatter(
-            x=df_daily["date"],
-            y=[historic_avg] * len(df_daily),
+            x=fng_ma["date"],
+            y=[historic_avg] * len(fng_ma),
             mode="lines",
             name=f"Historic Average: {historic_avg:,.2f}",
             line=dict(color="red", width=2, dash="dash"),
@@ -151,7 +126,5 @@ def market_sentiment_page():
     )
 
     st.plotly_chart(fig3)
-
-    st.pyplot(plt)
 
     st.image("https://alternative.me/crypto/fear-and-greed-index.png")
