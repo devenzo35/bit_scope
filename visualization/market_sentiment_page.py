@@ -4,6 +4,7 @@ from plotly import graph_objects as go
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from plotly.subplots import make_subplots
 
 plt.style.use("seaborn-v0_8-dark")
 sns.set_palette("husl")
@@ -27,6 +28,16 @@ def market_sentiment_page():
 
     df_daily["smooth_value"] = (
         df_daily["value"].rolling(window=15, min_periods=1).mean()
+    )
+
+    historic_avg = df_daily["value"].mean()
+
+    fig = make_subplots(
+        rows=1,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.1,
+        subplot_titles=("Sentiment vs Price"),
     )
 
     fig, ax1 = plt.subplots(figsize=(12, 6))
@@ -74,15 +85,72 @@ def market_sentiment_page():
     st.pyplot(plt)
     plt.close()
 
-    plt.figure(figsize=(12, 6))
-    sns.lineplot(
-        data=df_daily,
-        x="date",
-        y="value",
+    fig2, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(
+        df_daily["date"],
+        df_daily["value"],
+        linewidth=2,
         marker="o",
         label="Sentiment Score",
         color="blue",
     )
+    ax.axhline(
+        y=historic_avg,  # Altura de la línea (el promedio)
+        color="red",  # Color dorado
+        linestyle="--",  # Línea punteada
+        linewidth=2,  # Grosor
+        label=f"Promedio: ${historic_avg:,.0f}",  # Etiqueta con el valor
+        alpha=0.8,  # Transparencia
+        zorder=2,  # Que quede debajo del precio
+    )
+
+    fig3 = go.Figure()
+    fig3.add_trace(
+        go.Scatter(
+            x=df_daily["date"],
+            y=df_daily["value"],
+            mode="lines+markers",
+            name="Sentiment Score (Smoothed)",
+            line=dict(
+                color="white",  # ← Valores para el color
+                width=1,
+            ),
+            marker=dict(
+                color=df_daily["value"],  # También colorear los puntos
+                colorscale="RdYlGn",
+                size=10,
+                showscale=True,  # No mostrar barra extra
+                line=dict(width=1, color="white"),  # Borde blanco en markers
+            ),
+        )
+    )
+
+    fig3.add_trace(
+        go.Scatter(
+            x=df_daily["date"],
+            y=[historic_avg] * len(df_daily),
+            mode="lines",
+            name=f"Historic Average: {historic_avg:,.2f}",
+            line=dict(color="red", width=2, dash="dash"),
+        )
+    )
+
+    fig3.update_legends(
+        title_font=dict(size=14, color="white", family="Arial"),
+        x=0.68,
+        y=0.99,
+    )
+
+    fig3.update_layout(
+        title="Bitcoin Market Sentiment Over Time",
+        xaxis_title="Date",
+        yaxis_title="Sentiment Score",
+        template="ggplot2",
+        height=500,
+        legend=dict(font=dict(size=12, color="white", family="Arial", weight="bold")),
+    )
+
+    st.plotly_chart(fig3)
 
     st.pyplot(plt)
 
