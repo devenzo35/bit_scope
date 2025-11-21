@@ -168,7 +168,7 @@ def economic_insights_page():
             y=filtered_cpi["monthly_inflation"],
             name="Consumer Price Index (CPI)",
             hovertemplate="<b>CPI:</b> %{y}<extra></extra>",
-            marker=dict(color="#ff7f0e"),
+            marker=dict(color="#30638E"),
         )
     )
     cpi_avg = daily_cpi_df["monthly_inflation"].mean()
@@ -179,7 +179,7 @@ def economic_insights_page():
             y=[cpi_avg] * len(filtered_cpi),
             mode="lines",
             name="Average Consumer Price Index",
-            line=dict(color="red", dash="dash"),
+            line=dict(color="red", width=2, dash="dash"),
         )
     )
     fig4.update_layout(
