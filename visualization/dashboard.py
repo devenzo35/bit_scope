@@ -7,6 +7,9 @@ from visualization.reddit import reddit_page
 
 
 def main(page):
+    if page == "News":
+        market_data_page()
+
     if page == "Market Data Dashboard":
         market_data_page()
 
@@ -26,6 +29,7 @@ if __name__ == "__main__":
     page = st.sidebar.selectbox(
         "Go to",
         [
+            "News",
             "Market Data Dashboard",
             "Economic Insights",
             "Market Sentiment",
