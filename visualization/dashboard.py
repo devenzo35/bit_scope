@@ -14,6 +14,14 @@ from visualization.reddit import reddit_page
 from visualization.news import news_page
 
 
+st.set_page_config(
+    page_title="BitScope - Bitcoin Analytics",  # Título en la pestaña del navegador
+    page_icon="₿",  # Emoji o ruta a imagen
+    layout="wide",  # "centered" o "wide"
+    initial_sidebar_state="expanded",  # "expanded", "collapsed", "auto"
+)
+
+
 def main(page):
     if page == "News":
         news_page()
