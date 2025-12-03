@@ -4,11 +4,12 @@ import plotly.graph_objects as go
 from visualization.economics_page import economic_insights_page
 from visualization.market_sentiment_page import market_sentiment_page
 from visualization.reddit import reddit_page
+from visualization.news import news_page
 
 
 def main(page):
     if page == "News":
-        market_data_page()
+        news_page()
 
     if page == "Market Data Dashboard":
         market_data_page()
