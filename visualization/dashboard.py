@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Agregar el directorio padre al PYTHONPATH
+root_dir = Path(__file__).parent.parent  # Sube dos niveles desde dashboard.py
+sys.path.insert(0, str(root_dir))
+
 import streamlit as st
 from visualization.market_data_page import market_data_page
 import plotly.graph_objects as go
