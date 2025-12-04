@@ -8,6 +8,8 @@ The project is designed to be a full-fledged data engineering solution, demonstr
 
 ![Project Architecture](assets/architecture.png)
 
+Link to Streamlit Dashboard: [https://bitscope.streamlit.app/](https://bitscope.streamlit.app/)
+
 ---
 
 ## Data Pipeline Layers
